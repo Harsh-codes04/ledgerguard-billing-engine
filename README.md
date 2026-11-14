@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # LedgerGuard Billing Engine
 
 **LedgerGuard: Dynamic Multi-Tenant Zero-Knowledge Billing Engine** is a MERN internship project. This starter implements workspace registration and sign-in plus tenant-scoped customer records. Billing plans, usage invoices, and a real cryptographic zero-knowledge proof are future milestones.
@@ -46,6 +45,29 @@ The current app does **not** yet generate a zero-knowledge proof. It does not ca
 
 The React development server forwards `/api` requests to the Express API at `http://localhost:4000`.
 
+## Deploy to Vercel
+
+This repository has separate `client` and `server` apps. Create two Vercel projects from the same GitHub repository and set each project's **Root Directory**:
+
+### Backend project
+
+1. Import the repository as a new Vercel project.
+2. Set **Root Directory** to `server` and leave Express framework/build detection on its defaults. Vercel recognizes the Express entrypoint at `src/server.js`.
+3. Add these Project Environment Variables:
+   - `MONGODB_URI`: your hosted MongoDB connection string.
+   - `JWT_SECRET`: a long, random secret (at least 24 characters).
+   - `CLIENT_URL`: the full production URL of the React client, such as `https://your-client.vercel.app`.
+4. Deploy and open `https://your-backend.vercel.app/api/health`; it should return a JSON status response.
+
+### Frontend project
+
+1. Import the same repository as another Vercel project.
+2. Set **Root Directory** to `client` and keep the Vite build defaults.
+3. Add `VITE_API_URL` with the backend's full origin, such as `https://your-backend.vercel.app` (no trailing slash).
+4. Redeploy the frontend. Vite embeds this value at build time, so changing it requires a new deployment.
+
+After both projects deploy, try creating a workspace on the frontend URL. If Vercel environment variables are changed, redeploy the affected project so the deployment receives the new values.
+
 ## Project layout
 
 ```text
@@ -90,6 +112,3 @@ The API gets the workspace from the authenticated user. It does not trust a work
 - Keep `.env` private and do not commit it.
 - The session token is stored in browser local storage for this learning prototype. Review token storage and authentication before deployment.
 - Use demo/test data only until tenant isolation and authentication have been reviewed.
-=======
-# ledgerguard-billing-engine
->>>>>>> fe2daf0550d500ae1d3e32b57ef0be64d1c22714
