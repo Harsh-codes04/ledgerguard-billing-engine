@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # LedgerGuard Billing Engine
 
 **LedgerGuard: Dynamic Multi-Tenant Zero-Knowledge Billing Engine** is a MERN internship project. This starter implements workspace registration and sign-in plus tenant-scoped customer records. Billing plans, usage invoices, and a real cryptographic zero-knowledge proof are future milestones.
@@ -89,3 +90,6 @@ The API gets the workspace from the authenticated user. It does not trust a work
 - Keep `.env` private and do not commit it.
 - The session token is stored in browser local storage for this learning prototype. Review token storage and authentication before deployment.
 - Use demo/test data only until tenant isolation and authentication have been reviewed.
+=======
+# ledgerguard-billing-engine
+>>>>>>> fe2daf0550d500ae1d3e32b57ef0be64d1c22714
