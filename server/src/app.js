@@ -2,6 +2,9 @@ import cors from "cors";
 import express from "express";
 import authRoutes from "./routes/auth.js";
 import customerRoutes from "./routes/customers.js";
+import planRoutes from "./routes/plans.js";
+import usageRoutes from "./routes/usage.js";
+import invoiceRoutes from "./routes/invoices.js";
 
 const app = express();
 const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
@@ -15,10 +18,13 @@ app.get("/api/health", (_req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
+app.use("/api/plans", planRoutes);
+app.use("/api/usage", usageRoutes);
+app.use("/api/invoices", invoiceRoutes);
 
 app.use((error, _req, res, _next) => {
   if (error?.code === 11000) {
-    return res.status(409).json({ message: "That account already exists." });
+    return res.status(409).json({ message: "A record with these details already exists." });
   }
   if (error?.name === "ValidationError" || error?.name === "CastError") {
     return res.status(400).json({ message: "Some submitted information is invalid." });

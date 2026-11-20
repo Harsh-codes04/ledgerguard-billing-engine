@@ -1,6 +1,8 @@
 import { Router } from "express";
 import mongoose from "mongoose";
 import Customer from "../models/Customer.js";
+import Invoice from "../models/Invoice.js";
+import UsageRecord from "../models/UsageRecord.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 
 const router = Router();
@@ -34,8 +36,21 @@ router.post("/", async (req, res) => {
 });
 
 router.delete("/:customerId", async (req, res) => {
-  if (!mongoose.isValidObjectId(req.params.customerId)) {
+  const customerId = req.params.customerId;
+  if (!mongoose.isValidObjectId(customerId)) {
     return res.status(404).json({ message: "Customer was not found in this workspace." });
+  }
+
+  const hasBillingHistory = await UsageRecord.exists({
+    tenantId: req.user.tenantId,
+    customerId,
+  });
+  const hasInvoices = await Invoice.exists({
+    tenantId: req.user.tenantId,
+    customerId,
+  });
+  if (hasBillingHistory || hasInvoices) {
+    return res.status(409).json({ message: "Customers with billing history cannot be removed." });
   }
 
   const customer = await Customer.findOneAndDelete({

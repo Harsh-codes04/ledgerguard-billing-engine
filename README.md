@@ -1,14 +1,19 @@
 # LedgerGuard Billing Engine
 
-**LedgerGuard: Dynamic Multi-Tenant Zero-Knowledge Billing Engine** is a MERN internship project. This starter implements workspace registration and sign-in plus tenant-scoped customer records. Billing plans, usage invoices, and a real cryptographic zero-knowledge proof are future milestones.
+**LedgerGuard: Dynamic Multi-Tenant Zero-Knowledge Billing Engine** is a MERN internship project. The current implementation includes workspace registration and sign-in, tenant-scoped customers and billing plans, monthly usage records, and draft invoice generation.
 
 ## Current milestone
 
 - Create a workspace and owner account.
 - Sign in with a password hash stored by the API.
 - Add and remove customers.
+- Create per-unit billing plans.
+- Record customer usage by billing month.
+- Generate one draft invoice per customer and month from saved usage.
 - Keep customer reads and deletes scoped to the signed-in account's workspace.
 - Use a responsive React interface.
+
+Prices are stored as integer paise to avoid floating-point invoice totals. This prototype assumes INR, whole-number quantities, and no tax or discounts. A fixed monthly charge can be represented by a plan with unit `month` and quantity `1`.
 
 The current app does **not** yet generate a zero-knowledge proof. It does not call ordinary encryption or hashing a proof.
 
@@ -77,9 +82,9 @@ client/                    React interface
   src/style.css            Responsive styling
   vite.config.js            Local API proxy
 server/                    Express API
-  src/models/              Tenant, user, and customer schemas
+  src/models/              Tenant, user, customer, plan, usage, and invoice schemas
   src/middleware/           Signed-in user lookup
-  src/routes/               Account and customer endpoints
+  src/routes/               Account, customer, plan, usage, and invoice endpoints
   src/app.js                API configuration and error handling
   src/server.js             MongoDB connection and server startup
   .env.example              Local environment settings
@@ -95,15 +100,23 @@ server/                    Express API
 | `GET` | `/api/customers` | List customers in the signed-in workspace |
 | `POST` | `/api/customers` | Add a customer to the signed-in workspace |
 | `DELETE` | `/api/customers/:customerId` | Remove a customer from that workspace |
+| `GET` | `/api/plans` | List the workspace's active billing plans |
+| `POST` | `/api/plans` | Create a per-unit billing plan |
+| `GET` | `/api/usage?period=YYYY-MM` | List usage for a billing month |
+| `POST` | `/api/usage` | Record usage for a customer and plan |
+| `DELETE` | `/api/usage/:usageId` | Remove usage before an invoice is generated |
+| `GET` | `/api/invoices` | List draft invoices in the workspace |
+| `POST` | `/api/invoices` | Generate a draft invoice from saved usage |
+| `PATCH` | `/api/invoices/:invoiceId/status` | Move an invoice from draft to sent or sent to paid |
 | `GET` | `/api/health` | Check whether the API is responding |
 
 The API gets the workspace from the authenticated user. It does not trust a workspace ID sent by the browser. This is the initial tenant-isolation pattern; it still needs a security review before any real customer data or public deployment.
 
 ## Next steps
 
-1. Add billing plans and usage records.
-2. Define and implement invoice calculations in cents/paise using integer amounts.
-3. Create invoice history and status views.
+1. Run and review the customer, plan, usage, and invoice flow locally and through the deployed API.
+2. Confirm billing rules, including currency, tax, discounts, and recurring charges, with the mentor.
+3. Add invoice status changes and downloadable invoice details if required.
 4. Design a narrowly scoped, real proof that validates an invoice total while keeping the line-item inputs private.
 5. Document the proof's public inputs, private inputs, and limitations; add the project report, slides, and demo.
 

@@ -120,3 +120,59 @@ input:focus { border-color: #7fa4eb; box-shadow: 0 0 0 3px rgba(40, 95, 210, .12
   .customer-row { gap: 9px; }
   .delete-button { padding: 7px 6px; }
 }
+
+.section-tabs { display: flex; gap: 7px; overflow-x: auto; margin: 8px 0 20px; padding: 5px; border: 1px solid var(--line); border-radius: 12px; background: #eef2f7; }
+.tab-button { flex: 0 0 auto; min-height: 39px; padding: 0 15px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
+.tab-button:hover { color: var(--navy); }
+.tab-button.active { background: #fff; color: var(--navy); box-shadow: 0 1px 4px rgba(24, 47, 90, .1); }
+.billing-grid { display: grid; grid-template-columns: minmax(270px, .72fr) minmax(0, 1.5fr); gap: 18px; align-items: start; }
+.billing-stack { display: flex; flex-direction: column; gap: 18px; }
+.billing-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 17px 21px; }
+.billing-toolbar strong { display: block; margin-top: 4px; color: var(--navy); }
+.billing-toolbar input { width: auto; min-width: 170px; }
+.form-card select { width: 100%; min-height: 44px; border: 1px solid #d8e0ea; border-radius: 8px; padding: 9px 11px; background: white; color: var(--ink); font: inherit; }
+.form-card select:focus { border-color: #7fa4eb; outline: none; box-shadow: 0 0 0 3px rgba(40, 95, 210, .12); }
+.form-card select:disabled { background: #f3f5f8; color: #8a96a8; }
+.plan-list-card, .usage-card, .invoice-list-card { padding: 24px; }
+.plan-list, .usage-list, .invoice-list { margin-top: 16px; }
+.plan-row, .usage-row, .invoice-row { display: flex; align-items: center; gap: 13px; padding: 14px 0; border-top: 1px solid #edf0f4; }
+.plan-mark, .invoice-mark { display: grid; flex: 0 0 40px; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: #eaf0fd; color: var(--blue); font-weight: 800; }
+.plan-info, .usage-info, .invoice-info { display: flex; flex: 1; flex-direction: column; gap: 4px; min-width: 0; }
+.plan-info span, .usage-info span, .invoice-info span { color: var(--muted); font-size: .84rem; }
+.plan-info strong, .usage-info strong, .invoice-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plan-price { color: var(--navy); white-space: nowrap; }
+.usage-row { flex-wrap: wrap; }
+.usage-row .delete-button { margin-left: 2px; }
+.invoice-total-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 15px; padding: 16px 0 0; border-top: 1px solid var(--line); color: var(--muted); }
+.invoice-total-row strong { color: var(--navy); font-size: 1.12rem; }
+.secondary-button { border: 1px solid #d6e0f2; background: #f3f6fc; color: var(--navy); }
+.secondary-button:hover:not(:disabled) { background: #e7eefb; }
+.invoice-row .invoice-mark { font-size: 1.05rem; }
+.invoice-item { border-top: 1px solid #edf0f4; }
+.invoice-item .invoice-row { border-top: 0; }
+.invoice-detail-button { flex: 0 0 auto; }
+.invoice-status-button { flex: 0 0 auto; border: 1px solid #dbe5f6; background: #eef3fb; color: var(--navy); }
+.invoice-status-button:hover:not(:disabled) { background: #dfe9fa; }
+.invoice-status-button:disabled { opacity: .6; cursor: wait; }
+.invoice-status { display: inline-block; padding: 2px 7px; border-radius: 999px; background: #eef3fb; color: var(--navy); font-size: .75rem; font-weight: 800; text-transform: capitalize; }
+.status-paid { background: #e8f7f1; color: #137455; }
+.status-sent { background: #fff6e6; color: #956413; }
+.invoice-detail { margin: 0 0 14px 53px; padding: 12px 14px; border-radius: 10px; background: #f7f9fc; }
+.invoice-line, .invoice-detail-total { display: flex; justify-content: space-between; gap: 15px; padding: 7px 0; color: var(--muted); font-size: .85rem; }
+.invoice-line strong, .invoice-detail-total strong { color: var(--ink); white-space: nowrap; }
+.invoice-detail-total { margin-top: 4px; padding-top: 11px; border-top: 1px solid var(--line); color: var(--navy); font-weight: 700; }
+
+@media (max-width: 800px) {
+  .billing-grid { grid-template-columns: 1fr; }
+  .billing-toolbar { align-items: flex-start; flex-direction: column; }
+  .billing-toolbar input { width: 100%; }
+}
+
+@media (max-width: 430px) {
+  .plan-list-card, .usage-card, .invoice-list-card { padding: 19px; }
+  .usage-row { gap: 8px; }
+  .usage-row .plan-price { margin-left: 52px; }
+  .invoice-row { flex-wrap: wrap; }
+  .invoice-detail { margin-left: 0; }
+  .invoice-status-button { margin-left: auto; }
+}

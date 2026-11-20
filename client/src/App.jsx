@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "./api.js";
+import PlansPanel from "./components/PlansPanel.jsx";
+import BillingPanel from "./components/BillingPanel.jsx";
 
 const TOKEN_KEY = "ledgerguard-token";
 
@@ -73,7 +75,8 @@ function AuthScreen({ onSignedIn }) {
   );
 }
 
-function Dashboard({ token, user, customers, onCustomersChanged, onSignOut }) {
+function Dashboard({ token, user, customers, plans, invoices, onCustomersChanged, onPlansChanged, onInvoicesChanged, onSignOut }) {
+  const [activeSection, setActiveSection] = useState("customers");
   const [form, setForm] = useState({ name: "", email: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -131,18 +134,24 @@ function Dashboard({ token, user, customers, onCustomersChanged, onSignOut }) {
             <h1>Good to see you, {user.name.split(" ")[0]}</h1>
             <p>Manage billing data for <strong>{user.workspaceName}</strong>.</p>
           </div>
-          <span className="status-pill"><span className="status-dot" /> Foundation milestone</span>
+          <span className="status-pill"><span className="status-dot" /> Billing foundation</span>
         </section>
 
         {(error || success) && <div className={`alert ${error ? "error-alert" : "success-alert"}`} role="status">{error || success}</div>}
 
         <section className="stat-grid" aria-label="Workspace summary">
           <article className="stat-card"><span className="stat-label">Customers</span><strong className="stat-value">{customers.length}</strong><span className="stat-foot">In this workspace</span></article>
-          <article className="stat-card muted-card"><span className="stat-label">Invoices</span><strong className="stat-value">Next milestone</strong><span className="stat-foot">Billing flow is coming next</span></article>
-          <article className="stat-card muted-card"><span className="stat-label">Privacy proof</span><strong className="stat-value">Planned</strong><span className="stat-foot">Cryptographic proof not implemented yet</span></article>
+          <article className="stat-card"><span className="stat-label">Billing plans</span><strong className="stat-value">{plans.length}</strong><span className="stat-foot">Rates in this workspace</span></article>
+          <article className="stat-card"><span className="stat-label">Invoices</span><strong className="stat-value">{invoices.length}</strong><span className="stat-foot">Draft invoices generated</span></article>
         </section>
 
-        <section className="content-grid">
+        <nav className="section-tabs" aria-label="Workspace sections">
+          <button type="button" className={`tab-button ${activeSection === "customers" ? "active" : ""}`} onClick={() => setActiveSection("customers")}>Customers</button>
+          <button type="button" className={`tab-button ${activeSection === "plans" ? "active" : ""}`} onClick={() => setActiveSection("plans")}>Billing plans</button>
+          <button type="button" className={`tab-button ${activeSection === "billing" ? "active" : ""}`} onClick={() => setActiveSection("billing")}>Usage & invoices</button>
+        </nav>
+
+        {activeSection === "customers" && <section className="content-grid">
           <form className="surface form-card" onSubmit={addCustomer}>
             <div className="section-icon">＋</div>
             <h2>Add a customer</h2>
@@ -167,7 +176,11 @@ function Dashboard({ token, user, customers, onCustomersChanged, onSignOut }) {
               </article>)}
             </div> : <div className="empty-state"><div className="empty-icon">♧</div><strong>No customers yet</strong><p>Add the first customer using the form.</p></div>}
           </section>
-        </section>
+        </section>}
+
+        {activeSection === "plans" && <PlansPanel token={token} plans={plans} onPlansChanged={onPlansChanged} />}
+
+        {activeSection === "billing" && <BillingPanel token={token} customers={customers} plans={plans} invoices={invoices} onInvoicesChanged={onInvoicesChanged} />}
 
         <section className="privacy-banner">
           <span className="privacy-lock">◈</span>
@@ -183,6 +196,8 @@ export default function App() {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
   const [user, setUser] = useState(null);
   const [customers, setCustomers] = useState([]);
+  const [plans, setPlans] = useState([]);
+  const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(Boolean(token));
   const [sessionError, setSessionError] = useState("");
 
@@ -196,10 +211,14 @@ export default function App() {
     Promise.all([
       apiRequest("/api/auth/me", { token }),
       apiRequest("/api/customers", { token }),
-    ]).then(([account, customerData]) => {
+      apiRequest("/api/plans", { token }),
+      apiRequest("/api/invoices", { token }),
+    ]).then(([account, customerData, planData, invoiceData]) => {
       if (!active) return;
       setUser(account.user);
       setCustomers(customerData.customers);
+      setPlans(planData.plans);
+      setInvoices(invoiceData.invoices);
       setSessionError("");
     }).catch((error) => {
       if (!active) return;
@@ -207,6 +226,8 @@ export default function App() {
       setToken(null);
       setUser(null);
       setCustomers([]);
+      setPlans([]);
+      setInvoices([]);
       setSessionError(error.message);
     }).finally(() => {
       if (active) setLoading(false);
@@ -218,6 +239,8 @@ export default function App() {
     localStorage.setItem(TOKEN_KEY, payload.token);
     setUser(payload.user);
     setCustomers([]);
+    setPlans([]);
+    setInvoices([]);
     setToken(payload.token);
   }
 
@@ -226,9 +249,11 @@ export default function App() {
     setToken(null);
     setUser(null);
     setCustomers([]);
+    setPlans([]);
+    setInvoices([]);
   }
 
   if (loading) return <div className="loading-screen"><Brand /><span>Opening your workspace…</span></div>;
-  if (token && user) return <Dashboard token={token} user={user} customers={customers} onCustomersChanged={setCustomers} onSignOut={signOut} />;
+  if (token && user) return <Dashboard token={token} user={user} customers={customers} plans={plans} invoices={invoices} onCustomersChanged={setCustomers} onPlansChanged={setPlans} onInvoicesChanged={setInvoices} onSignOut={signOut} />;
   return <><AuthScreen onSignedIn={signIn} />{sessionError && <div className="session-message">{sessionError}</div>}</>;
 }
