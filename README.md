@@ -10,6 +10,8 @@
 - Create per-unit billing plans.
 - Record customer usage by billing month.
 - Generate one draft invoice per customer and month from saved usage.
+- Move invoices through draft, sent, and paid statuses.
+- Search invoices by customer or billing month, filter by status, and export the visible results to CSV.
 - Keep customer reads and deletes scoped to the signed-in account's workspace.
 - Use a responsive React interface.
 
@@ -116,7 +118,7 @@ The API gets the workspace from the authenticated user. It does not trust a work
 
 1. Run and review the customer, plan, usage, and invoice flow locally and through the deployed API.
 2. Confirm billing rules, including currency, tax, discounts, and recurring charges, with the mentor.
-3. Add invoice status changes and downloadable invoice details if required.
+3. Add a printable invoice document if required by the mentor.
 4. Design a narrowly scoped, real proof that validates an invoice total while keeping the line-item inputs private.
 5. Document the proof's public inputs, private inputs, and limitations; add the project report, slides, and demo.
 

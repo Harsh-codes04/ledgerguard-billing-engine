@@ -7,6 +7,12 @@ function currentPeriod() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function csvCell(value) {
+  const text = String(value ?? "");
+  const safeText = /^[\s]*[=+@\-]/.test(text) ? `'${text}` : text;
+  return `"${safeText.replaceAll('"', '""')}"`;
+}
+
 export default function BillingPanel({ token, customers, plans, invoices, onInvoicesChanged }) {
   const [period, setPeriod] = useState(currentPeriod);
   const [customerId, setCustomerId] = useState("");
@@ -18,6 +24,8 @@ export default function BillingPanel({ token, customers, plans, invoices, onInvo
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [expandedInvoiceId, setExpandedInvoiceId] = useState("");
+  const [invoiceSearch, setInvoiceSearch] = useState("");
+  const [invoiceStatus, setInvoiceStatus] = useState("all");
 
   useEffect(() => {
     if (customers.length && !customers.some((customer) => customer._id === customerId)) {
@@ -45,6 +53,15 @@ export default function BillingPanel({ token, customers, plans, invoices, onInvo
     () => invoices.find((invoice) => invoice.customerId === customerId && invoice.period === period),
     [invoices, customerId, period]
   );
+
+  const filteredInvoices = useMemo(() => {
+    const query = invoiceSearch.trim().toLowerCase();
+    return invoices.filter((invoice) => {
+      const matchesSearch = !query || `${invoice.customerNameSnapshot} ${invoice.period}`.toLowerCase().includes(query);
+      const matchesStatus = invoiceStatus === "all" || invoice.status === invoiceStatus;
+      return matchesSearch && matchesStatus;
+    });
+  }, [invoices, invoiceSearch, invoiceStatus]);
 
   async function addUsage(event) {
     event.preventDefault();
@@ -117,6 +134,28 @@ export default function BillingPanel({ token, customers, plans, invoices, onInvo
     }
   }
 
+  function exportInvoices() {
+    const headings = ["Invoice ID", "Customer", "Billing period", "Status", "Total (INR)", "Line items"];
+    const rows = filteredInvoices.map((invoice) => [
+      invoice._id,
+      invoice.customerNameSnapshot,
+      invoice.period,
+      invoice.status,
+      (invoice.totalPaise / 100).toFixed(2),
+      (invoice.lineItems || []).map((line) => `${line.description}: ${line.quantity} ${line.unitLabel}`).join("; "),
+    ]);
+    const csv = [headings, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
+    const file = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+    const downloadUrl = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = `ledgerguard-invoices-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+  }
+
   const monthTotalPaise = usageRecords.reduce(
     (total, record) => total + record.quantity * record.unitPricePaiseSnapshot,
     0
@@ -182,10 +221,22 @@ export default function BillingPanel({ token, customers, plans, invoices, onInvo
       <section className="surface invoice-list-card">
         <div className="list-heading">
           <div><div className="eyebrow">Generated from saved usage</div><h2>Invoices</h2></div>
-          <span className="count-badge">{invoices.length}</span>
+          <div className="invoice-actions">
+            <span className="count-badge" aria-label={`${filteredInvoices.length} invoices shown`}>{filteredInvoices.length}</span>
+            <button className="button secondary-button export-button" type="button" onClick={exportInvoices} disabled={!filteredInvoices.length}>Export CSV</button>
+          </div>
         </div>
-        {invoices.length ? <div className="invoice-list">
-          {invoices.map((invoice) => <article className="invoice-item" key={invoice._id}>
+        {invoices.length > 0 && <div className="invoice-tools">
+          <input aria-label="Search invoices" type="search" placeholder="Search customer or month" value={invoiceSearch} onChange={(event) => setInvoiceSearch(event.target.value)} />
+          <select aria-label="Filter invoices by status" value={invoiceStatus} onChange={(event) => setInvoiceStatus(event.target.value)}>
+            <option value="all">All statuses</option>
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>}
+        {filteredInvoices.length ? <div className="invoice-list">
+          {filteredInvoices.map((invoice) => <article className="invoice-item" key={invoice._id}>
             <div className="invoice-row">
               <div className="invoice-mark">₹</div>
               <div className="invoice-info"><strong>{invoice.customerNameSnapshot}</strong><span>{invoice.period} · <span className={`invoice-status status-${invoice.status}`}>{invoice.status}</span></span></div>
@@ -205,7 +256,7 @@ export default function BillingPanel({ token, customers, plans, invoices, onInvo
               <div className="invoice-detail-total"><span>Total</span><strong>{formatMoney(invoice.totalPaise)}</strong></div>
             </div>}
           </article>)}
-        </div> : <div className="empty-state"><strong>No invoices yet</strong><p>Generate one after adding a customer’s usage for the month.</p></div>}
+        </div> : invoices.length ? <div className="empty-state"><strong>No matching invoices</strong><p>Try a different customer, billing month, or status.</p></div> : <div className="empty-state"><strong>No invoices yet</strong><p>Generate one after adding a customer’s usage for the month.</p></div>}
       </section>
     </section>
   );
