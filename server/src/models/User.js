@@ -8,17 +8,20 @@ const userSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    name: { type: String, required: true, trim: true, maxlength: 80 },
+    fullName: { type: String, required: true, trim: true, maxlength: 120 },
     email: {
       type: String,
       required: true,
       trim: true,
       lowercase: true,
       unique: true,
-      index: true,
     },
     passwordHash: { type: String, required: true },
-    role: { type: String, enum: ["owner", "member"], default: "owner" },
+    role: {
+      type: String,
+      enum: ["OrgAdmin", "BillingManager", "Auditor"],
+      default: "OrgAdmin",
+    },
   },
   { timestamps: true }
 );

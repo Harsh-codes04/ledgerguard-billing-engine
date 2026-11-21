@@ -14,11 +14,11 @@ From the repository root in PowerShell:
 
 ```powershell
 npm install
-Copy-Item server/.env.example server/.env
-Copy-Item client/.env.example client/.env
+if (-not (Test-Path server/.env)) { Copy-Item server/.env.example server/.env }
+if (-not (Test-Path client/.env)) { Copy-Item client/.env.example client/.env }
 ```
 
-The example environment files point to a local MongoDB database and the local React development server. Change `MONGO_URI` in `server/.env` if using MongoDB Atlas. Keep `.env` files private; only `.env.example` files belong in Git.
+The example environment files point to a local MongoDB database and the local React development server. If either `.env` already exists, keep it and update the needed values instead of replacing it. Set `MONGO_URI` in `server/.env` to your MongoDB connection string. Keep `.env` files private; only `.env.example` files belong in Git.
 
 ## Run locally
 
@@ -36,7 +36,7 @@ Terminal 2, start the React client:
 npm run dev:client
 ```
 
-Open the Vite URL printed in Terminal 2, usually `http://localhost:5173`. Check the API at `http://localhost:5000/api/health`. The server stays available if MongoDB is offline, and the health response reports `dbConnected: false` in that case.
+Open the Vite URL printed in Terminal 2, usually `http://localhost:5173`. Check the API at `http://localhost:5000/api/health`. If the API prints a different port, set that same port in `VITE_API_URL` in `client/.env` and restart Vite. The server stays available if MongoDB is offline, and the health response reports `dbConnected: false` in that case.
 
 For a production-style API start, use `npm run start:server` from the repository root.
 

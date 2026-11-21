@@ -1,0 +1,103 @@
+import { useState } from "react";
+import { NavLink, Outlet } from "react-router-dom";
+import {
+  Activity,
+  Boxes,
+  FileClock,
+  LayoutDashboard,
+  LockKeyhole,
+  Menu,
+  ReceiptText,
+  UsersRound,
+  Webhook,
+  X,
+} from "lucide-react";
+
+const navigation = [
+  { label: "Overview", to: "/", icon: LayoutDashboard, end: true },
+  { label: "Customers", to: "/customers", icon: UsersRound },
+  { label: "Plans & Metering", to: "/plans", icon: Boxes },
+  { label: "Invoices", to: "/invoices", icon: ReceiptText },
+  { label: "Webhooks", to: "/webhooks", icon: Webhook },
+  { label: "Audit Ledger", to: "/audit", icon: FileClock },
+];
+
+export default function Layout() {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-slate-100 text-slate-900 lg:flex">
+      {mobileNavOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-slate-950/60 lg:hidden"
+          aria-label="Close navigation"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
+
+      <aside className={`${mobileNavOpen ? "fixed" : "hidden"} inset-y-0 left-0 z-50 flex h-screen w-72 shrink-0 flex-col bg-slate-950 text-slate-200 lg:sticky lg:top-0 lg:z-auto lg:flex lg:w-64`}>
+        <div className="flex h-20 items-center justify-between border-b border-white/10 px-6">
+          <a className="text-xl font-extrabold tracking-tight text-white" href="/">
+            Ledger<span className="text-cyan-400">Guard</span>
+          </a>
+          <button className="rounded-lg p-2 text-slate-400 hover:bg-white/10 lg:hidden" type="button" aria-label="Close navigation" onClick={() => setMobileNavOpen(false)}>
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="px-5 pb-3 pt-6 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Workspace</div>
+        <nav className="flex-1 space-y-1 px-3" aria-label="Main navigation">
+          {navigation.map(({ label, to, icon: Icon, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              onClick={() => setMobileNavOpen(false)}
+              className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${isActive ? "bg-cyan-500/15 text-cyan-300 ring-1 ring-inset ring-cyan-400/20" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
+            >
+              <Icon size={18} strokeWidth={1.9} />
+              <span>{label}</span>
+              {label === "Overview" && <Activity className="ml-auto text-cyan-400" size={15} />}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="m-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+            <LockKeyhole size={14} /> Privacy status
+          </div>
+          <p className="text-sm font-semibold text-white">Vault locked</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">Client-side key setup is planned for a later milestone.</p>
+        </div>
+      </aside>
+
+      <div className="min-w-0 flex-1">
+        <header className="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-4 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-7 lg:px-10">
+          <div className="flex items-center gap-3">
+            <button className="rounded-lg border border-slate-200 p-2 text-slate-600 lg:hidden" type="button" aria-label="Open navigation" onClick={() => setMobileNavOpen(true)}>
+              <Menu size={20} />
+            </button>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">LedgerGuard console</p>
+              <p className="mt-1 text-sm font-bold text-slate-800">Workspace overview</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 sm:inline-flex">Demo tenant</span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
+              <LockKeyhole size={14} /> <span className="hidden sm:inline">Zero-Knowledge Vault:</span> Locked
+            </span>
+          </div>
+        </header>
+
+        <main className="mx-auto w-full max-w-7xl px-4 py-7 sm:px-7 sm:py-9 lg:px-10">
+          <Outlet />
+        </main>
+        <footer className="border-t border-slate-200 px-6 py-5 text-center text-xs text-slate-400">
+          Day 1 scaffold · Cryptographic protections are not active yet
+        </footer>
+      </div>
+    </div>
+  );
+}
