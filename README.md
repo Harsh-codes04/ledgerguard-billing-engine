@@ -77,3 +77,43 @@ The tenant schema includes a `vaultSalt` field for a future browser-side PBKDF2 
 8. Signed, idempotent payment webhook simulator
 9. Tamper-evident audit ledger
 10. Client-side analytics, integration, and review
+
+## Day 2: authentication and tenant roles
+
+Day 2 adds workspace registration, sign-in, sign-out, session restoration, role checks, and an administrator-only invite endpoint. Passwords are stored as `bcryptjs` hashes. JWTs are sent in an HTTP-only `token` cookie; the browser API helper includes credentials and does not store the token in local storage.
+
+Configure `server/.env` with:
+
+```env
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/ledgerguard
+CLIENT_URL=http://localhost:5173
+JWT_SECRET=replace_with_a_random_secret_at_least_32_characters_long
+JWT_EXPIRES_IN=7d
+```
+
+Use a different, random `JWT_SECRET` for any shared or production deployment. In production the authentication cookie is `Secure` and uses `SameSite=None` for a separately deployed client/API; configure `CLIENT_URL` to the exact frontend origin. For localhost, the cookie uses `SameSite=Lax`.
+
+### Authentication API
+
+| Method | Endpoint | Access |
+| --- | --- | --- |
+| `POST` | `/api/auth/register-tenant` | Public; creates a workspace and its first `OrgAdmin` |
+| `POST` | `/api/auth/login` | Public |
+| `POST` | `/api/auth/logout` | Public; clears the cookie |
+| `GET` | `/api/auth/me` | Signed-in user |
+| `POST` | `/api/auth/invite` | `OrgAdmin`; creates a `BillingManager` or `Auditor` in the current tenant |
+
+The authentication middleware checks the signed-in user and active tenant in MongoDB on each protected request. It pins `req.tenantId` to that account's tenant and ignores any tenant ID supplied by the browser. Future tenant-owned database routes must include `tenantId: req.tenantId` in every query (the middleware exports `tenantScopedFilter` for this). A tenant ID property alone cannot make an unscoped future query safe.
+
+Tenant and first-admin creation runs in one MongoDB transaction. MongoDB Atlas and local replica-set deployments support this. A standalone local MongoDB instance does not; in that case registration returns `503` with a setup message instead of risking a partially created workspace.
+
+### Day 2 verification
+
+1. Run `npm install` after pulling the Day 2 changes, then start the API and client in separate terminals as above.
+2. Open the client and choose **Create a workspace**. Submit a workspace name, your name, a unique email address, and a password of at least 8 characters. The dashboard should open with your name, `OrgAdmin` role, tenant name, and plan tier in the header.
+3. In the same browser, open `http://localhost:5000/api/auth/me`. It should return the current user and tenant. If your API is listening on another port, use that port.
+4. Click **Logout**. The app should return to `/login`; the `/api/auth/me` endpoint should now return `401`.
+5. Sign in with the same email and password. The workspace header should return after login.
+
+Day 2 does not encrypt customer data or implement the Web Crypto vault. Use demo data only.
