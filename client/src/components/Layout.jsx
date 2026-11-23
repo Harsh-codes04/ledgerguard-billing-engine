@@ -9,11 +9,14 @@ import {
   LockKeyhole,
   Menu,
   ReceiptText,
+  ShieldCheck,
   UsersRound,
   Webhook,
   X,
 } from "lucide-react";
+import VaultModal from "./VaultModal.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useVault } from "../context/VaultContext.jsx";
 
 const navigation = [
   { label: "Overview", to: "/", icon: LayoutDashboard, end: true },
@@ -26,10 +29,13 @@ const navigation = [
 
 export default function Layout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [vaultModalOpen, setVaultModalOpen] = useState(false);
   const { user, tenant, logout } = useAuth();
+  const { isUnlocked, lockVault } = useVault();
   const navigate = useNavigate();
 
   async function handleLogout() {
+    lockVault();
     try {
       await logout();
     } catch {
@@ -80,8 +86,8 @@ export default function Layout() {
           <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
             <LockKeyhole size={14} /> Privacy status
           </div>
-          <p className="text-sm font-semibold text-white">Vault locked</p>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Client-side key setup is planned for a later milestone.</p>
+          <p className="text-sm font-semibold text-white">{isUnlocked ? "Vault unlocked" : "Vault locked"}</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">Keys stay in memory; billing records are not encrypted yet.</p>
         </div>
       </aside>
 
@@ -102,9 +108,15 @@ export default function Layout() {
               <p className="max-w-44 truncate text-xs text-slate-500">{tenant?.name} · {tenant?.planTier}</p>
             </div>
             <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-extrabold text-emerald-800 sm:inline-flex">{user?.role}</span>
-            <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
-              <LockKeyhole size={14} /> <span className="hidden sm:inline">Zero-Knowledge Vault:</span> Locked
-            </span>
+            <button
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition ${isUnlocked ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}
+              type="button"
+              onClick={() => setVaultModalOpen(true)}
+              aria-expanded={vaultModalOpen}
+            >
+              {isUnlocked ? <ShieldCheck size={14} /> : <LockKeyhole size={14} />}
+              <span className="hidden sm:inline">Zero-Knowledge Vault:</span> {isUnlocked ? "Unlocked" : "Locked"}
+            </button>
             <button className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700" type="button" onClick={handleLogout} title="Sign out">
               <LogOut size={16} /><span className="hidden sm:inline">Logout</span>
             </button>
@@ -123,9 +135,10 @@ export default function Layout() {
           <Outlet />
         </main>
         <footer className="border-t border-slate-200 px-6 py-5 text-center text-xs text-slate-400">
-          Day 1 scaffold · Cryptographic protections are not active yet
+          Browser-side vault ready · Billing records are not yet connected to encryption
         </footer>
       </div>
+      <VaultModal open={vaultModalOpen} onClose={() => setVaultModalOpen(false)} />
     </div>
   );
 }

@@ -59,6 +59,8 @@ function publicTenant(tenant) {
     slug: tenant.slug,
     planTier: tenant.planTier,
     isActive: tenant.isActive,
+    // A salt is public input for the browser KDF; it is not an encryption key.
+    vaultSalt: tenant.vaultSalt,
   };
 }
 

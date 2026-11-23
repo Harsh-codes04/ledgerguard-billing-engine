@@ -26,8 +26,8 @@ const architectureCards = [
   {
     icon: LockKeyhole,
     title: "Browser-held encryption",
-    detail: "The vault is not active yet. Customer data is not encrypted by this scaffold.",
-    tag: "Planned",
+    detail: "Passphrase-derived keys stay in browser memory. Customer records are not connected to encryption yet.",
+    tag: "Day 3 vault",
     iconClass: "bg-amber-50 text-amber-700",
   },
   {

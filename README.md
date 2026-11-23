@@ -1,6 +1,6 @@
 # LedgerGuard: Zero-Knowledge Billing Engine
 
-LedgerGuard is a 10-day MERN learning project exploring multi-tenant billing and privacy-preserving verification. **Day 1 provides the monorepo foundation, tenant and user schemas, an API health endpoint, and a React overview dashboard.** Encryption, authentication, billing, and zero-knowledge proofs are not active in this scaffold yet.
+LedgerGuard is a 10-day MERN learning project exploring multi-tenant billing and privacy-preserving verification. Day 1 established the monorepo, tenant and user schemas, API health endpoint, and React dashboard. Day 2 added authentication and workspace roles. Day 3 adds a browser-only key vault; customer records and billing data are not connected to encryption yet, and there is no zero-knowledge proof.
 
 ## Day 1 prerequisites
 
@@ -40,14 +40,14 @@ Open the Vite URL printed in Terminal 2, usually `http://localhost:5173`. Check 
 
 For a production-style API start, use `npm run start:server` from the repository root.
 
-## Day 1 structure
+## Monorepo layout
 
 ```text
 server/
   src/
     config/db.js
-    controllers/             # Reserved for upcoming milestones
-    middleware/              # Reserved for upcoming milestones
+    controllers/
+    middleware/
     models/Tenant.js
     models/User.js
     routes/healthRoutes.js
@@ -55,15 +55,17 @@ server/
 client/
   src/
     components/Layout.jsx
-    context/                  # Reserved for upcoming milestones
-    crypto/                   # Reserved for upcoming milestones
+    context/AuthContext.jsx
+    context/VaultContext.jsx
+    crypto/zkVault.js
+    components/VaultModal.jsx
     pages/Overview.jsx
     services/api.js
     App.jsx
     index.css
 ```
 
-The tenant schema includes a `vaultSalt` field for a future browser-side PBKDF2 flow. A salt is not an encryption key. Day 1 does not derive keys, encrypt records, authenticate users, or prove invoice integrity. Do not enter real customer data.
+The tenant schema's `vaultSalt` is a public random salt for browser-side PBKDF2; it is not a password, encryption key, or verifier. The vault derives keys locally, but it does not encrypt customer or billing records in this milestone. Do not enter real customer data.
 
 ## 10-day roadmap
 
@@ -116,4 +118,22 @@ Tenant and first-admin creation runs in one MongoDB transaction. MongoDB Atlas a
 4. Click **Logout**. The app should return to `/login`; the `/api/auth/me` endpoint should now return `401`.
 5. Sign in with the same email and password. The workspace header should return after login.
 
-Day 2 does not encrypt customer data or implement the Web Crypto vault. Use demo data only.
+Day 2 adds authentication and roles but does not encrypt customer data. Use demo data only.
+
+## Day 3: browser-side key vault
+
+`client/src/crypto/zkVault.js` uses only the browser Web Crypto API. It derives 512 bits with PBKDF2-SHA-256 (310,000 iterations), splits them into separate non-extractable AES-GCM-256 and HMAC-SHA-256 keys, and clears the temporary byte arrays. Encryption uses a fresh 12-byte IV per call. The vault keys live in React memory only and are cleared on logout or after 15 minutes without activity.
+
+The vault modal can run a local round-trip diagnostic and display its ciphertext and decrypted sample. It does not send the sample to the API. The current workspace salt has no saved encrypted verifier, so any passphrase derives a key; the diagnostic only confirms that the same key can encrypt and decrypt. It does not prove that a user entered a previously chosen passphrase.
+
+Blind indexes are deterministic HMAC values. They hide the original string from the API but reveal equality when identical normalized values are indexed. `computeCommitment` returns a SHA-256 digest over a minor-unit amount and nonce; this is an integrity digest, not a Pedersen commitment or a zero-knowledge proof.
+
+### Day 3 verification
+
+1. Start the API and client as above and sign in to a workspace. The API response from `/api/auth/me` includes `tenant.vaultSalt`; the salt is public input to the browser key derivation.
+2. Select **Vault Locked** in the header, enter a passphrase of at least 12 characters, and unlock. The header badge should turn emerald.
+3. Run **Verify round-trip encryption**. Confirm a Base64 ciphertext and matching decrypted sample appear; the sample is handled in the browser only.
+4. Lock the vault manually or sign out. The badge should return to amber. The vault also locks after 15 minutes of inactivity.
+5. Run `npm run build` from the repository root to confirm the client bundle compiles.
+
+The key vault is not yet connected to customer, plan, usage, or invoice API requests. Do not treat this prototype as production zero-knowledge billing.
