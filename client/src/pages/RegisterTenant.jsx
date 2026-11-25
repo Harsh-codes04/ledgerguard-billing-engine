@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ArrowRight, Building2, ShieldCheck } from "lucide-react";
+import { ArrowRight, Building2, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import ApiStatus from "../components/ApiStatus.jsx";
 
 export default function RegisterTenant() {
   const { registerTenant, sessionError } = useAuth();
@@ -9,6 +10,7 @@ export default function RegisterTenant() {
   const [fields, setFields] = useState({ fullName: "", tenantName: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
@@ -40,6 +42,7 @@ export default function RegisterTenant() {
           <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white">Start with your team</h1>
           <p className="mt-2 text-sm leading-6 text-slate-400">You’ll be the organization administrator. You can add workspace roles later.</p>
         </div>
+        <ApiStatus />
 
         <form className="space-y-4" onSubmit={submit}>
           <div>
@@ -59,7 +62,12 @@ export default function RegisterTenant() {
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-slate-300" htmlFor="register-password">Password</label>
-            <input className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/10" id="register-password" type="password" autoComplete="new-password" minLength="8" maxLength="72" value={fields.password} onChange={(event) => setFields({ ...fields, password: event.target.value })} required />
+            <div className="relative">
+              <input className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 pr-12 text-sm text-white outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/10" id="register-password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength="8" maxLength="72" value={fields.password} onChange={(event) => setFields({ ...fields, password: event.target.value })} required />
+              <button className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-200" type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"}>
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
+            </div>
             <span className="mt-1.5 block text-xs text-slate-500">Use at least 8 characters (up to 72 UTF-8 bytes).</span>
           </div>
           {(error || sessionError) && <p className="rounded-xl border border-rose-400/20 bg-rose-400/10 px-3.5 py-3 text-sm text-rose-200" role="alert">{error || sessionError}</p>}

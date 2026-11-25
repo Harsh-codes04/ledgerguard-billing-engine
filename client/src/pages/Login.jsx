@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import ApiStatus from "../components/ApiStatus.jsx";
 
 export default function Login() {
   const { login, sessionError } = useAuth();
@@ -10,6 +11,7 @@ export default function Login() {
   const [fields, setFields] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
@@ -41,6 +43,7 @@ export default function Login() {
           <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white">Sign in to your workspace</h1>
           <p className="mt-2 text-sm leading-6 text-slate-400">Use your account email and password to continue.</p>
         </div>
+        <ApiStatus />
 
         <form className="space-y-4" onSubmit={submit}>
           <div>
@@ -51,7 +54,10 @@ export default function Login() {
             <label className="mb-1.5 block text-sm font-semibold text-slate-300" htmlFor="login-password">Password</label>
             <div className="relative">
               <LockKeyhole className="absolute left-3.5 top-3.5 text-slate-500" size={16} />
-              <input className="w-full rounded-xl border border-slate-700 bg-slate-950/70 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/10" id="login-password" type="password" autoComplete="current-password" value={fields.password} onChange={(event) => setFields({ ...fields, password: event.target.value })} required />
+              <input className="w-full rounded-xl border border-slate-700 bg-slate-950/70 py-3 pl-10 pr-12 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/10" id="login-password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={fields.password} onChange={(event) => setFields({ ...fields, password: event.target.value })} required />
+              <button className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-200" type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"}>
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
             </div>
           </div>
           {(error || sessionError) && <p className="rounded-xl border border-rose-400/20 bg-rose-400/10 px-3.5 py-3 text-sm text-rose-200" role="alert">{error || sessionError}</p>}
