@@ -91,6 +91,13 @@ export default function Overview() {
   }, [refreshCount]);
 
   const dbState = health.backend === "offline" ? "offline" : health.dbConnected === null ? "checking" : health.dbConnected ? "online" : "offline";
+  const dbDetail = health.backend === "offline"
+    ? "The API could not be reached."
+    : health.dbConnected === null
+      ? "Waiting for the API response."
+      : health.dbConnected
+        ? "Cloud database is connected."
+        : "The API is online, but MongoDB is not connected.";
 
   return (
     <div className="space-y-8">
@@ -126,8 +133,16 @@ export default function Overview() {
             <span className="rounded-xl bg-slate-100 p-3 text-slate-600"><Database size={21} /></span>
           </div>
           <HealthIndicator label="Express API" state={health.backend} detail="GET /api/health" />
-          <HealthIndicator label="MongoDB" state={dbState} detail={health.timestamp ? `Last checked ${new Date(health.timestamp).toLocaleTimeString()}` : "Connection reported by the API"} />
+          <HealthIndicator label="MongoDB" state={dbState} detail={health.timestamp ? `${dbDetail} Last checked ${new Date(health.timestamp).toLocaleTimeString()}` : dbDetail} />
           {health.error && <p className="mt-5 flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700"><CircleAlert size={17} /> {health.error}</p>}
+          {health.backend === "online" && health.dbConnected === false && (
+            <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <p className="flex items-center gap-2 font-bold"><CircleAlert size={17} /> Database connection needs attention</p>
+              <p className="mt-2 leading-6">
+                Check the <code className="rounded bg-amber-100 px-1">MONGODB_URI</code> in Render and allow the Render service’s outbound IP addresses in Atlas Network Access.
+              </p>
+            </div>
+          )}
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">

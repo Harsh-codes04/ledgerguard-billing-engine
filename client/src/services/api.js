@@ -17,13 +17,22 @@ export async function apiRequest(path, { method = "GET", body, headers, ...optio
     requestHeaders.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`, {
-    ...options,
-    method,
-    headers: requestHeaders,
-    credentials: "include",
-    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`, {
+      ...options,
+      method,
+      headers: requestHeaders,
+      credentials: "include",
+      body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
+    });
+  } catch (error) {
+    if (error.name === "AbortError") throw error;
+    throw new ApiError(
+      "Cannot reach the LedgerGuard API. Check Vercel's VITE_API_URL and Render's CLIENT_URL settings.",
+      0
+    );
+  }
 
   const payload = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
