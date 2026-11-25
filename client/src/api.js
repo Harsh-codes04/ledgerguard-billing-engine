@@ -1,18 +1,26 @@
-const API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const configuredApiUrl = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/+$/, "");
+const API_BASE_URL = configuredApiUrl.endsWith("/api") ? configuredApiUrl : `${configuredApiUrl}/api`;
 
-export async function apiRequest(path, { token, method = "GET", body } = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+function requestUrl(path) {
+  const cleanPath = `/${String(path).replace(/^\/+/, "")}`.replace(/^\/api(?=\/|$)/, "");
+  return `${API_BASE_URL}${cleanPath}`;
+}
+
+export async function apiRequest(path, { method = "GET", body, signal } = {}) {
+  const headers = new Headers({ Accept: "application/json" });
+  if (body !== undefined) headers.set("Content-Type", "application/json");
+
+  const response = await fetch(requestUrl(path), {
     method,
-    headers: {
-      ...(body ? { "Content-Type": "application/json" } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
+    headers,
+    credentials: "include",
+    signal,
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
 
-  const data = await response.json().catch(() => ({}));
+  const data = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(data.message || "The request could not be completed.");
+    throw new Error(data?.message || "The request could not be completed.");
   }
   return data;
 }

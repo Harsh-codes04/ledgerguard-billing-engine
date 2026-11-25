@@ -3,11 +3,11 @@ import mongoose from "mongoose";
 import Customer from "../models/Customer.js";
 import Invoice from "../models/Invoice.js";
 import UsageRecord from "../models/UsageRecord.js";
-import { requireAuth } from "../middleware/requireAuth.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
-router.use(requireAuth);
+router.use(authMiddleware);
 
 router.get("/", async (req, res) => {
   const customers = await Customer.find({ tenantId: req.user.tenantId })

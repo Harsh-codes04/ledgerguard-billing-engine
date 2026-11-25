@@ -1,9 +1,9 @@
 import { Router } from "express";
 import Plan from "../models/Plan.js";
-import { requireAuth } from "../middleware/requireAuth.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = Router();
-router.use(requireAuth);
+router.use(authMiddleware);
 
 router.get("/", async (req, res) => {
   const plans = await Plan.find({ tenantId: req.user.tenantId, active: true })

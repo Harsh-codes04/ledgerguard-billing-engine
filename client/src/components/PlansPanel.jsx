@@ -2,7 +2,7 @@ import { useState } from "react";
 import { apiRequest } from "../api.js";
 import { formatMoney, parseRupeesToPaise } from "../format.js";
 
-export default function PlansPanel({ token, plans, onPlansChanged }) {
+export default function PlansPanel({ plans, onPlansChanged }) {
   const [form, setForm] = useState({ name: "", unitLabel: "unit", price: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -21,7 +21,6 @@ export default function PlansPanel({ token, plans, onPlansChanged }) {
     setBusy(true);
     try {
       const data = await apiRequest("/api/plans", {
-        token,
         method: "POST",
         body: {
           name: form.name,

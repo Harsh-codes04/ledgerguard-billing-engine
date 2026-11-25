@@ -2,7 +2,6 @@ import { useState } from "react";
 import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import ApiStatus from "../components/ApiStatus.jsx";
 
 export default function Login() {
   const { login, sessionError } = useAuth();
@@ -43,8 +42,6 @@ export default function Login() {
           <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white">Sign in to your workspace</h1>
           <p className="mt-2 text-sm leading-6 text-slate-400">Use your account email and password to continue.</p>
         </div>
-        <ApiStatus />
-
         <form className="space-y-4" onSubmit={submit}>
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-slate-300" htmlFor="login-email">Email</label>

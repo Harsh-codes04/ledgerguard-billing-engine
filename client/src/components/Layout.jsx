@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Activity,
   Boxes,
@@ -23,8 +23,8 @@ const navigation = [
   { label: "Customers", to: "/customers", icon: UsersRound },
   { label: "Plans & Metering", to: "/plans", icon: Boxes },
   { label: "Invoices", to: "/invoices", icon: ReceiptText },
-  { label: "Webhooks", to: "/webhooks", icon: Webhook },
-  { label: "Audit Ledger", to: "/audit", icon: FileClock },
+  { label: "Webhooks", to: "/webhooks", icon: Webhook, soon: true },
+  { label: "Audit Ledger", to: "/audit", icon: FileClock, soon: true },
 ];
 
 export default function Layout() {
@@ -32,7 +32,11 @@ export default function Layout() {
   const [vaultModalOpen, setVaultModalOpen] = useState(false);
   const { user, tenant, logout } = useAuth();
   const { isUnlocked, lockVault } = useVault();
+  const location = useLocation();
   const navigate = useNavigate();
+  const currentPage = navigation.find((item) => item.to === location.pathname);
+  const pageTitle = currentPage?.label || "Workspace";
+  const initials = (user?.fullName || "LG").split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
   async function handleLogout() {
     lockVault();
@@ -55,59 +59,59 @@ export default function Layout() {
         />
       )}
 
-      <aside className={`${mobileNavOpen ? "fixed" : "hidden"} inset-y-0 left-0 z-50 flex h-screen w-72 shrink-0 flex-col bg-slate-950 text-slate-200 lg:sticky lg:top-0 lg:z-auto lg:flex lg:w-64`}>
-        <div className="flex h-20 items-center justify-between border-b border-white/10 px-6">
+      <aside className={`${mobileNavOpen ? "fixed" : "hidden"} inset-y-0 left-0 z-50 flex h-screen w-72 shrink-0 flex-col bg-[#101b2d] text-slate-200 shadow-2xl shadow-slate-950/10 lg:sticky lg:top-0 lg:z-auto lg:flex lg:w-64`}>
+        <div className="flex h-20 items-center justify-between border-b border-white/[0.07] px-6">
           <Link className="text-xl font-extrabold tracking-tight text-white" to="/">
-            Ledger<span className="text-cyan-400">Guard</span>
+            Ledger<span className="text-teal-300">Guard</span>
           </Link>
           <button className="rounded-lg p-2 text-slate-400 hover:bg-white/10 lg:hidden" type="button" aria-label="Close navigation" onClick={() => setMobileNavOpen(false)}>
             <X size={20} />
           </button>
         </div>
 
-        <div className="px-5 pb-3 pt-6 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Workspace</div>
+        <div className="px-5 pb-3 pt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Workspace</div>
         <nav className="flex-1 space-y-1 px-3" aria-label="Main navigation">
-          {navigation.map(({ label, to, icon: Icon, end }) => (
+          {navigation.map(({ label, to, icon: Icon, end, soon }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               onClick={() => setMobileNavOpen(false)}
-              className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${isActive ? "bg-cyan-500/15 text-cyan-300 ring-1 ring-inset ring-cyan-400/20" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
+              className={({ isActive }) => `group flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold transition ${isActive ? "bg-teal-300/10 text-teal-200 ring-1 ring-inset ring-teal-200/15" : "text-slate-400 hover:bg-white/[0.05] hover:text-white"}`}
             >
-              <Icon size={18} strokeWidth={1.9} />
+              <Icon size={17} strokeWidth={1.9} />
               <span>{label}</span>
-              {label === "Overview" && <Activity className="ml-auto text-cyan-400" size={15} />}
+              {soon ? <span className="ml-auto rounded-full bg-white/[0.06] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-500">Soon</span> : label === "Overview" && <Activity className="ml-auto text-teal-300" size={14} />}
             </NavLink>
           ))}
         </nav>
 
-        <div className="m-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-            <LockKeyhole size={14} /> Privacy status
+        <div className="m-4 rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
+          <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+            <LockKeyhole size={13} /> Workspace vault
           </div>
-          <p className="text-sm font-semibold text-white">{isUnlocked ? "Vault unlocked" : "Vault locked"}</p>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Keys stay in memory; billing records are not encrypted yet.</p>
+          <p className="text-sm font-semibold text-white">{isUnlocked ? "Ready for this session" : "Locked"}</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">Unlock from the top bar when you need it.</p>
         </div>
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-4 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-7 lg:px-10">
+        <header className="sticky top-0 z-30 flex min-h-[76px] items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-xl sm:px-7 lg:px-10">
           <div className="flex items-center gap-3">
             <button className="rounded-lg border border-slate-200 p-2 text-slate-600 lg:hidden" type="button" aria-label="Open navigation" onClick={() => setMobileNavOpen(true)}>
               <Menu size={20} />
             </button>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">LedgerGuard console</p>
-              <p className="mt-1 text-sm font-bold text-slate-800">Workspace overview</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">LedgerGuard</p>
+              <p className="mt-0.5 text-sm font-bold text-slate-800">{pageTitle}</p>
             </div>
           </div>
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <div className="hidden min-w-0 text-right md:block">
-              <p className="max-w-44 truncate text-sm font-bold text-slate-800">{user?.fullName}</p>
-              <p className="max-w-44 truncate text-xs text-slate-500">{tenant?.name} · {tenant?.planTier}</p>
+              <p className="max-w-44 truncate text-[13px] font-bold text-slate-800">{user?.fullName}</p>
+              <p className="max-w-44 truncate text-[11px] text-slate-500">{tenant?.name} · {tenant?.planTier}</p>
             </div>
-            <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-extrabold text-emerald-800 sm:inline-flex">{user?.role}</span>
+            <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-wide text-slate-600 sm:inline-flex">{user?.role}</span>
             <button
               className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition ${isUnlocked ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}
               type="button"
@@ -131,11 +135,11 @@ export default function Layout() {
           <span className="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-extrabold text-emerald-800">{user?.role}</span>
         </div>
 
-        <main className="mx-auto w-full max-w-7xl px-4 py-7 sm:px-7 sm:py-9 lg:px-10">
+        <main className="mx-auto w-full max-w-[1360px] px-4 py-7 sm:px-7 sm:py-9 lg:px-10">
           <Outlet />
         </main>
-        <footer className="border-t border-slate-200 px-6 py-5 text-center text-xs text-slate-400">
-          Browser-side vault ready · Billing records are not yet connected to encryption
+        <footer className="border-t border-slate-200/80 px-6 py-5 text-center text-[11px] text-slate-400">
+          LedgerGuard · Billing made easier to follow
         </footer>
       </div>
       <VaultModal open={vaultModalOpen} onClose={() => setVaultModalOpen(false)} />

@@ -4,10 +4,10 @@ import Customer from "../models/Customer.js";
 import Invoice from "../models/Invoice.js";
 import Plan from "../models/Plan.js";
 import UsageRecord from "../models/UsageRecord.js";
-import { requireAuth } from "../middleware/requireAuth.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = Router();
-router.use(requireAuth);
+router.use(authMiddleware);
 
 function validPeriod(period) {
   return typeof period === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(period);

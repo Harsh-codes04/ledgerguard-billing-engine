@@ -13,7 +13,7 @@ function csvCell(value) {
   return `"${safeText.replaceAll('"', '""')}"`;
 }
 
-export default function BillingPanel({ token, customers, plans, invoices, onInvoicesChanged }) {
+export default function BillingPanel({ customers, plans, invoices, onInvoicesChanged }) {
   const [period, setPeriod] = useState(currentPeriod);
   const [customerId, setCustomerId] = useState("");
   const [planId, setPlanId] = useState("");
@@ -42,12 +42,12 @@ export default function BillingPanel({ token, customers, plans, invoices, onInvo
   useEffect(() => {
     let active = true;
     setLoading(true);
-    apiRequest(`/api/usage?period=${encodeURIComponent(period)}`, { token })
+    apiRequest(`/api/usage?period=${encodeURIComponent(period)}`)
       .then((data) => { if (active) setUsageRecords(data.usageRecords); })
       .catch((requestError) => { if (active) setError(requestError.message); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [token, period]);
+  }, [period]);
 
   const selectedInvoice = useMemo(
     () => invoices.find((invoice) => invoice.customerId === customerId && invoice.period === period),
@@ -70,7 +70,6 @@ export default function BillingPanel({ token, customers, plans, invoices, onInvo
     setBusy(true);
     try {
       const data = await apiRequest("/api/usage", {
-        token,
         method: "POST",
         body: { customerId, planId, period, quantity: Number(quantity) },
       });
@@ -87,7 +86,7 @@ export default function BillingPanel({ token, customers, plans, invoices, onInvo
     setError("");
     setSuccess("");
     try {
-      await apiRequest(`/api/usage/${record._id}`, { token, method: "DELETE" });
+      await apiRequest(`/api/usage/${record._id}`, { method: "DELETE" });
       setUsageRecords((current) => current.filter((item) => item._id !== record._id));
       setSuccess("Usage record removed.");
     } catch (requestError) {
@@ -101,7 +100,6 @@ export default function BillingPanel({ token, customers, plans, invoices, onInvo
     setBusy(true);
     try {
       const data = await apiRequest("/api/invoices", {
-        token,
         method: "POST",
         body: { customerId, period },
       });
@@ -121,7 +119,6 @@ export default function BillingPanel({ token, customers, plans, invoices, onInvo
     setBusy(true);
     try {
       const data = await apiRequest(`/api/invoices/${invoice._id}/status`, {
-        token,
         method: "PATCH",
         body: { status: nextStatus },
       });
