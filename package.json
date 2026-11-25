@@ -14,5 +14,8 @@
     "start:server": "npm run start --workspace server",
     "dev:client": "npm run dev --workspace client",
     "build": "npm run build --workspace client"
+  },
+  "dependencies": {
+    "mongodb": "^7.9.1"
   }
 }
