@@ -58,3 +58,4 @@ server/   Express API, MongoDB models, and authentication
 ```
 
 The vault keys stay in browser memory and are cleared on sign-out or after 15 minutes without activity. Blind indexes can reveal when two values match. The SHA-256 commitment helper is an integrity digest, not a zero-knowledge proof.
+sjksdfhhjsdlhalhsdfjlhasjld,f,ljdn,vzcs,cn,zn,.cn,nz,cnvlskhdfksj,dzsbn,bcdm,zbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbn
