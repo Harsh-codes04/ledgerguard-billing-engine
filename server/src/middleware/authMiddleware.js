@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { getJwtPublicKey, JWT_AUDIENCE, JWT_ISSUER } from "../config/jwtKeys.js";
 import Tenant from "../models/Tenant.js";
 import User from "../models/User.js";
 
@@ -18,7 +19,11 @@ export async function authMiddleware(req, res, next) {
 
   let claims;
   try {
-    claims = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+    claims = jwt.verify(token, getJwtPublicKey(), {
+      algorithms: ["RS256"],
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+    });
   } catch (error) {
     if (["JsonWebTokenError", "TokenExpiredError", "NotBeforeError"].includes(error.name)) {
       return res.status(401).json({ message: "Your session is invalid or has expired. Sign in again." });

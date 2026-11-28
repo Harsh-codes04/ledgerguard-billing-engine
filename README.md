@@ -25,7 +25,13 @@ Copy-Item server/.env.example server/.env
 Copy-Item client/.env.example client/.env
 ```
 
-Set `MONGO_URI` and a private `JWT_SECRET` in `server/.env`. The client example uses `http://localhost:5000/api`; change it if your API uses a different port. Workspace registration uses MongoDB transactions, so use Atlas or a local replica set.
+Set `MONGO_URI` in `server/.env`. Generate an RSA key pair from the project folder and copy the two printed values into `JWT_PRIVATE_KEY_BASE64` and `JWT_PUBLIC_KEY_BASE64` in `server/.env`:
+
+```powershell
+npm run keys:generate --workspace server
+```
+
+Keep the private key value on the server and out of GitHub. The client example uses `http://localhost:5000/api`; change it if your API uses a different port. Workspace registration uses MongoDB transactions, so use Atlas or a local replica set.
 
 Open two terminals in the project folder. Run the API in one:
 
@@ -43,7 +49,7 @@ Open the address printed by Vite, usually `http://localhost:5173`.
 
 ## Deploying
 
-The client and API are separate deployments. Set `VITE_API_URL` in Vercel to the API address ending in `/api`. In the API service, set `CLIENT_URL` to the Vercel site address, `MONGODB_URI` to the Atlas connection string, and a private `JWT_SECRET`. Deploy again after changing environment settings.
+The client and API are separate deployments. Set `VITE_API_URL` in Vercel to the API address ending in `/api`. In the API service, set `CLIENT_URL` to the Vercel site address, `MONGODB_URI` to the Atlas connection string, and both generated RSA key values. The private key stays in Render; the public key is used to verify tokens. Deploy again after changing environment settings. Existing sessions need to sign in again after switching to RS256.
 
 ## Current limitation
 

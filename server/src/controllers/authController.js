@@ -2,18 +2,11 @@ import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { getJwtPrivateKey, JWT_AUDIENCE, JWT_ISSUER } from "../config/jwtKeys.js";
 import Tenant from "../models/Tenant.js";
 import User from "../models/User.js";
 
 const ROLE_NAMES = new Set(["OrgAdmin", "BillingManager", "Auditor"]);
-
-function getJwtSecret() {
-  const secret = process.env.JWT_SECRET;
-  if (!secret || secret.length < 32) {
-    throw new Error("Set JWT_SECRET to a random secret with at least 32 characters.");
-  }
-  return secret;
-}
 
 function tokenExpiry() {
   return process.env.JWT_EXPIRES_IN || "7d";
@@ -29,7 +22,7 @@ function cookieOptions() {
   };
 }
 
-function signAccessToken(user, secret) {
+function signAccessToken(user) {
   return jwt.sign(
     {
       userId: user._id.toString(),
@@ -37,8 +30,13 @@ function signAccessToken(user, secret) {
       role: user.role,
       email: user.email,
     },
-    secret,
-    { expiresIn: tokenExpiry(), algorithm: "HS256" }
+    getJwtPrivateKey(),
+    {
+      expiresIn: tokenExpiry(),
+      algorithm: "RS256",
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+    }
   );
 }
 
@@ -104,7 +102,6 @@ function validPassword(password) {
 }
 
 export async function registerTenant(req, res) {
-  const secret = getJwtSecret();
   const fullName = String(req.body.fullName || "").trim();
   const tenantName = String(req.body.tenantName || "").trim();
   const email = String(req.body.email || "").trim().toLowerCase();
@@ -144,13 +141,12 @@ export async function registerTenant(req, res) {
     throw error;
   }
 
-  const token = signAccessToken(admin, secret);
+  const token = signAccessToken(admin);
   res.cookie("token", token, { ...cookieOptions(), maxAge: 7 * 24 * 60 * 60 * 1000 });
   return res.status(201).json({ user: publicUser(admin), tenant: publicTenant(tenant) });
 }
 
 export async function login(req, res) {
-  const secret = getJwtSecret();
   const email = String(req.body.email || "").trim().toLowerCase();
   const password = String(req.body.password || "");
 
@@ -171,7 +167,7 @@ export async function login(req, res) {
     return res.status(403).json({ message: "This workspace is inactive." });
   }
 
-  const token = signAccessToken(account, secret);
+  const token = signAccessToken(account);
   res.cookie("token", token, { ...cookieOptions(), maxAge: 7 * 24 * 60 * 60 * 1000 });
   return res.json({ user: publicUser(account), tenant: publicTenant(tenant) });
 }
